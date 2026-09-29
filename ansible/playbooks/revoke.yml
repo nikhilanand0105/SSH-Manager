@@ -1,0 +1,26 @@
+---
+- hosts: host
+  gather_facts: false
+
+  vars_files:
+    - "../vars/params.yml"
+
+  remote_user: "{{ remote_user }}"
+
+  tasks:
+    - name: Remove ssh_ca.pub file from remote host
+      become: yes
+      file:
+        path: "/etc/ssh/{{ ca_name }}.pub"
+        state: absent
+
+    - name: Modify sshd_config to remove ssh_ca.pub as Trusted ca key
+      become: yes
+      lineinfile:
+        dest: /etc/ssh/sshd_config
+        regexp: "TrustedUserCAKeys /etc/ssh/{{ ca_name }}.pub"
+        state: absent
+
+    - name: Restart ssh service
+      become: yes
+      command: service ssh reload

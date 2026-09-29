@@ -1,0 +1,27 @@
+---
+- hosts: host
+  gather_facts: false
+
+  vars_files:
+    - "../vars/params.yml"
+
+  remote_user: "{{ remote_user }}"
+
+  tasks:
+    - name: Copy ssh_ca.pub file to remote host
+      become: yes
+      copy:
+        src: "../../ssh_ca/{{ ca_name }}.pub"
+        dest: /etc/ssh
+        mode: 0600
+
+    - name: Modify sshd_config to include ssh_ca.pub as Trusted ca key
+      become: yes
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        line: "TrustedUserCAKeys /etc/ssh/{{ ca_name }}.pub"
+        create: no
+
+    - name: Restart ssh service
+      become: yes
+      command: service ssh reload
